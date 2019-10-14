@@ -21,42 +21,66 @@ var myMap = L.map("map", {
   d3.json(geoData, function(data) {
     console.log(data); 
     // Create a new choropleth layer
-    geojson = L.circleMarker(data, {
-  
+    L.geojson(data,
+      pointToLayer, function (feature, latlng) {
+      return L.circleMarker( latlng,{
+          radius: feature.properties.mag*4, 
+          color: "black", 
+          weight: 1, 
+          opacity: 1, 
+          fillOpacity: 0.5
+      }       
+          )}
+    ); 
       // Binding a pop-up to each layer
+    var earthQuake = L.geojson(data, {
       onEachFeature: function(feature, layer) {
         console.log(feature.coordinates); 
         layer.bindPopup("Plate name: " + feature.properties.PlateName);
       }
-    }).addTo(myMap);
+    }).addTo(myMap)
+    
+  });   
+     
   
     // Set up the legend
     var legend = L.control({ position: "bottomright" });
     legend.onAdd = function() {
       var div = L.DomUtil.create("div", "info legend");
-      var mag = ["0-1", "1-2", "2-3", "3-4", "4-5", "5+"];
-      var colors = ["#66FF33", "#F3FF33", "#FFD033", "#FFB833", "#FF8033", "#FF3333"];
-      var labels = [];
+      grades = ["0-1", "1-2", "2-3", "3-4", "4-5", "5+"],
+      labels = [];
   
       // Add min & max
-      var legendInfo = "<h1>Magnitude</h1>" +
-        "<div class=\"labels\">" +
-          "<div class=\"min\">" + mag[0] + "</div>" +
-          "<div class=\"max\">" + mag[mag.length - 1] + "</div>" +
-        "</div>";
-  
-      div.innerHTML = legendInfo;
-  
-      limit.forEach(function() {
-        labels.push("<li style=\"background-color: " + legendInfo[i].colors + "\">" + legendInfo[i].limit+"</li>");
-      });
-  
-      div.innerHTML += "<ul>" + labels.join("") + "</ul>";
+    for (var i=0; i < grades.length; i++){
+      div.innerHTML += 
+          '<i style="background:' + color(grades[i] + '"></i> ' +
+          grades[i] + (grades[i +1] ? '&ndash;' + grades[i + 1] + '<br>' : '+')
+          )}
+    
       return div;
-    };
+  }; 
+
+  function color(c)
+  {
+    x = Math.ceil(c); 
+    switch (Math.ceil(x)){
+      case 1: 
+        return "#66FF33"; 
+      case 2: 
+        return "#F3FF33"; 
+      case 3: 
+        return "#FFD033"; 
+      case 4: 
+        return "#FFB833"; 
+      case 5: 
+        return "#FF8033"; 
+      default: 
+        return "#FF3333"; 
+    }
+  }; 
   
     // Adding legend to the map
     legend.addTo(myMap);
-  
-  });
+
+
   
